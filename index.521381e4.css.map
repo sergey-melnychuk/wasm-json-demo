@@ -1,0 +1,1 @@
+{"mappings":"ACAA,wBAIA","sources":["index.521381e4.css","style.css"],"sourcesContent":["p {\n  font-family: monospace;\n}\n\n.error {\n  color: red;\n}\n/*# sourceMappingURL=index.521381e4.css.map */\n","p {\n    font-family: monospace;\n}\n\n.error {\n    color: red;\n}\n"],"names":[],"version":3,"file":"index.521381e4.css.map"}
