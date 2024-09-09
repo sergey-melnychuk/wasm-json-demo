@@ -1,14 +1,59 @@
 use wasm_bindgen::prelude::*;
-use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
+extern crate console_error_panic_hook;
+use std::panic;
+
 #[wasm_bindgen]
-pub fn process_json(input: &str) -> Result<String, JsValue> {
+pub fn set_hook() {
+    panic::set_hook(Box::new(console_error_panic_hook::hook));
+}
+
+#[wasm_bindgen]
+extern "C" {
+    // Use `js_namespace` here to bind `console.log(..)` instead of just
+    // `log(..)`
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(s: &str);
+}
+
+#[wasm_bindgen]
+pub async fn process_json(input: &str) -> Result<Vec<String>, JsValue> {
     match serde_json::from_str::<Value>(input) {
         Ok(parsed) => {
+            let url = parsed["url"].as_str().unwrap();
+            let client = reqwest::Client::new();
+            let response: serde_json::Value = client.get(url)
+                .send()
+                .await
+                .map_err(|e| JsValue::from_str(&e.to_string()))?
+                .json()
+                .await
+                .map_err(|e| JsValue::from_str(&e.to_string()))?;
             let mut obj = parsed.as_object().unwrap().clone();
             obj.insert("processed".to_string(), json!(true));
-            Ok(serde_json::to_string(&obj).unwrap())
+            obj.insert("answer".to_string(), json!(42));
+            obj.insert("response".to_string(), response);
+            let ret = serde_json::to_string(&obj).unwrap();
+            Ok(vec![ret])
+        },
+        Err(e) => Err(JsValue::from_str(&format!("Failed to parse JSON: {}", e))),
+    }
+}
+
+#[wasm_bindgen]
+pub fn process_json_blocking(input: &str) -> Result<Vec<String>, JsValue> {
+    match serde_json::from_str::<Value>(input) {
+        Ok(parsed) => {
+            let url = parsed["url"].as_str().unwrap();
+            // TODO: blocking IO is not supported by WebAssembly runtime!
+            let response = format!("TODO: blocking HTTP call to {url}");
+            let mut obj = parsed.as_object().unwrap().clone();
+            obj.insert("processed".to_string(), json!(true));
+            obj.insert("answer".to_string(), json!(42));
+            obj.insert("response".to_string(), json!(response));
+            let ret = serde_json::to_string(&obj).unwrap();
+            Ok(vec![ret])
         },
         Err(e) => Err(JsValue::from_str(&format!("Failed to parse JSON: {}", e))),
     }

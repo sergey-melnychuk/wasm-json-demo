@@ -1,16 +1,20 @@
-import init, { process_json, JsonProcessor } from './node_modules/wasm-json-demo/wasm_json_demo.js';
+import init, { process_json, process_json_blocking, JsonProcessor, set_hook } from '../pkg/wasm_json_demo.js';
 
 async function run() {
     await init();
+    set_hook();
     const div = document.getElementById('log');
 
-    const inputJson = JSON.stringify({ key: "value" });
-    const outputJson = process_json(inputJson);
+    const inputJson = JSON.stringify({ key: "url", url: "http://127.0.0.1:3000/example" });
+    const outputJson = await process_json(inputJson);
     console.log("Output JSON:", outputJson);
+
+    const output = process_json_blocking(inputJson);
+    console.log("Output JSON:", output);
 
     const invalidJson = '{ key: "value" }';
     try {
-        const outputJson = process_json(invalidJson);
+        const outputJson = await process_json(invalidJson);
         console.log("Output JSON:", outputJson);
         dump(div, "Outpot JSON: " + outputJson);
     } catch (err) {

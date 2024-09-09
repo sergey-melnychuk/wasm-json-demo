@@ -2,16 +2,11 @@ wasm-json-demo
 ==============
 
 ```
-# cargo install wasm-pack
+rm -rf web/.parcel-cache web/dist pkg target
+
 wasm-pack build --target web
-
-# mkdir web && cd web
-# npm init -y
-# npm install ../pkg
-# npm install --save-dev parcel
-npm install
+cd web
 npx parcel build index.html
-
-# npm install -g http-server
-http-server ./web/dist
+http-server ./dist
+cd ..
 ```
